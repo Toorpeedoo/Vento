@@ -199,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <tr onclick="fillForm(<?php echo $product->getId(); ?>, '<?php echo htmlspecialchars($product->getProductName(), ENT_QUOTES); ?>', <?php echo $product->getPrice(); ?>, <?php echo $product->getQuantity(); ?>);">
                                         <td><?php echo htmlspecialchars($product->getId()); ?></td>
                                         <td><?php echo htmlspecialchars($product->getProductName()); ?></td>
-                                        <td>$<?php echo number_format($product->getPrice(), 2); ?></td>
+                                        <td>₱<?php echo number_format($product->getPrice(), 2); ?></td>
                                         <td><?php echo htmlspecialchars($product->getQuantity()); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -352,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     row.innerHTML = `
                         <td>${product.id}</td>
                         <td>${escapeHtml(product.name)}</td>
-                        <td>$${parseFloat(product.price).toFixed(2)}</td>
+                        <td>₱${parseFloat(product.price).toFixed(2)}</td>
                         <td>${product.quantity}</td>
                     `;
                 }

@@ -62,7 +62,7 @@ $products = FileDatabaseUtil::getAllProductsSorted();
                                 <tr>
                                     <td><?php echo htmlspecialchars($product->getId()); ?></td>
                                     <td><?php echo htmlspecialchars($product->getProductName()); ?></td>
-                                    <td>$<?php echo number_format($product->getPrice(), 2); ?></td>
+                                    <td>₱<?php echo number_format($product->getPrice(), 2); ?></td>
                                     <td><?php echo htmlspecialchars($product->getQuantity()); ?></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -106,7 +106,7 @@ $products = FileDatabaseUtil::getAllProductsSorted();
                     row.innerHTML = `
                         <td>${product.id}</td>
                         <td>${escapeHtml(product.name)}</td>
-                        <td>$${parseFloat(product.price).toFixed(2)}</td>
+                        <td>₱${parseFloat(product.price).toFixed(2)}</td>
                         <td>${product.quantity}</td>
                     `;
                     count++;
