@@ -1,0 +1,52 @@
+<?php
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu - VENTO</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <h1 class="nav-title">VENTO Inventory System</h1>
+            <div class="nav-actions">
+                <a href="index.php" class="btn btn-secondary btn-small">Back to Main</a>
+                <a href="#" onclick="window.close(); return false;" class="btn btn-danger btn-small">Exit</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Main Menu</h2>
+            </div>
+            
+            <div class="menu-grid">
+                <a href="add_product.php" class="menu-card">
+                    <h3 class="menu-card-title">Add Product</h3>
+                    <p class="menu-card-description">Add a new product to the inventory</p>
+                </a>
+                
+                <a href="update_product.php" class="menu-card">
+                    <h3 class="menu-card-title">Update Product</h3>
+                    <p class="menu-card-description">Update product information, add or subtract quantity</p>
+                </a>
+                
+                <a href="view_products.php" class="menu-card">
+                    <h3 class="menu-card-title">View Products</h3>
+                    <p class="menu-card-description">View all products in inventory</p>
+                </a>
+                
+                <a href="delete_product.php" class="menu-card">
+                    <h3 class="menu-card-title">Delete Product</h3>
+                    <p class="menu-card-description">Remove a product from inventory</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
