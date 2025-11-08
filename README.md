@@ -29,7 +29,6 @@ A modern PHP web application for managing store inventory.
 
 ### Using PHP Built-in Server (Development)
 ```bash
-cd web
 php -S localhost:8000
 ```
 
@@ -38,19 +37,23 @@ Then open your browser and navigate to:
 http://localhost:8000
 ```
 
+Or use the provided scripts:
+- **Windows**: `start.bat`
+- **Linux/Mac**: `./start.sh`
+
 ### Using Apache/Nginx
-1. Place the `web` folder in your web server root
-2. Access via: `http://localhost/web/`
+1. Place all files in your web server root directory
+2. Access via: `http://localhost/`
 
 ## File Structure
 
 ```
-web/
+StoreInventorySystem/
 ├── index.php              # Main splash page
 ├── main_menu.php          # Main menu
 ├── add_product.php        # Add product form
 ├── view_products.php      # View all products
-├── update_product.php     # Update product form
+├── update_product.php     # Update product form (unified with tabs)
 ├── update_menu.php        # Update menu
 ├── add_quantity.php       # Add quantity form
 ├── subtract_quantity.php # Subtract quantity form
@@ -62,6 +65,8 @@ web/
 │   └── style.css          # Modern CSS styles
 ├── data/
 │   └── products.txt       # Data storage (auto-created)
+├── start.bat              # Windows startup script
+├── start.sh               # Linux/Mac startup script
 └── .htaccess              # Apache configuration
 ```
 
