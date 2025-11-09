@@ -4,28 +4,84 @@ require_once 'Product.php';
 /**
  * File-based database utility class
  * Stores products in a text file with format: ID|ProductName|Price|Quantity
+ * Each user has their own product database file: data/products_{username}.txt
  */
 class FileDatabaseUtil {
-    private static $DB_FILE = "data/products.txt";
+    private static $DB_FILE_TEMPLATE = "data/products_%s.txt";
     
     /**
-     * Get the database file path
+     * Get the current username from session
+     * @return string|null The username or null if not available
      */
-    private static function getDbFile() {
-        $file = __DIR__ . "/../" . self::$DB_FILE;
+    private static function getCurrentUsername() {
+        // Check if session is started and username is set
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (isset($_SESSION['username']) && !empty($_SESSION['username'])) {
+            return $_SESSION['username'];
+        }
+        
+        // Try to use getCurrentUsername function if auth.php is included
+        if (function_exists('getCurrentUsername')) {
+            return getCurrentUsername();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Sanitize username for use in filename
+     * @param string $username The username to sanitize
+     * @return string The sanitized username
+     */
+    public static function sanitizeUsername($username) {
+        // Remove any characters that could be problematic in filenames
+        // Allow alphanumeric, underscore, hyphen, and dot
+        $sanitized = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $username);
+        // Limit length to prevent extremely long filenames
+        return substr($sanitized, 0, 100);
+    }
+    
+    /**
+     * Get the database file path for a specific user
+     * @param string|null $username The username (if null, uses current session username)
+     * @return string The file path
+     */
+    private static function getDbFile($username = null) {
+        if ($username === null) {
+            $username = self::getCurrentUsername();
+        }
+        
+        if ($username === null) {
+            throw new Exception("Username is required to access product database.");
+        }
+        
+        $sanitizedUsername = self::sanitizeUsername($username);
+        $dbFile = sprintf(self::$DB_FILE_TEMPLATE, $sanitizedUsername);
+        $file = __DIR__ . "/../" . $dbFile;
         $dir = dirname($file);
+        
+        // Ensure the data directory exists
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
+        
         return $file;
     }
     
     /**
-     * Read all products from file
+     * Read all products from file for the current user
+     * @param string|null $username Optional username (uses current session if not provided)
      */
-    public static function getAllProducts() {
+    public static function getAllProducts($username = null) {
         $products = [];
-        $file = self::getDbFile();
+        try {
+            $file = self::getDbFile($username);
+        } catch (Exception $e) {
+            return $products; // Return empty array if username not available
+        }
         
         if (!file_exists($file)) {
             return $products;
@@ -43,10 +99,17 @@ class FileDatabaseUtil {
     }
     
     /**
-     * Write all products to file
+     * Write all products to file for the current user
+     * @param array $products The products to write
+     * @param string|null $username Optional username (uses current session if not provided)
      */
-    private static function writeAllProducts($products) {
-        $file = self::getDbFile();
+    private static function writeAllProducts($products, $username = null) {
+        try {
+            $file = self::getDbFile($username);
+        } catch (Exception $e) {
+            return false; // Cannot write if username not available
+        }
+        
         $content = "";
         
         foreach ($products as $product) {
@@ -57,101 +120,126 @@ class FileDatabaseUtil {
     }
     
     /**
-     * Add a new product
+     * Add a new product for the current user
      */
     public static function addProduct($product) {
         if ($product === null) {
             return false;
         }
         
-        $products = self::getAllProducts();
-        
-        // Check if ID already exists
-        foreach ($products as $p) {
-            if ($p->getId() == $product->getId()) {
-                return false; // ID already exists
+        try {
+            $username = self::getCurrentUsername();
+            $products = self::getAllProducts($username);
+            
+            // Check if ID already exists
+            foreach ($products as $p) {
+                if ($p->getId() == $product->getId()) {
+                    return false; // ID already exists
+                }
             }
+            
+            $products[] = $product;
+            return self::writeAllProducts($products, $username);
+        } catch (Exception $e) {
+            return false;
         }
-        
-        $products[] = $product;
-        return self::writeAllProducts($products);
     }
     
     /**
-     * Update an existing product
+     * Update an existing product for the current user
      */
     public static function updateProduct($product) {
         if ($product === null) {
             return false;
         }
         
-        $products = self::getAllProducts();
-        $found = false;
-        
-        for ($i = 0; $i < count($products); $i++) {
-            if ($products[$i]->getId() == $product->getId()) {
-                $products[$i] = $product;
-                $found = true;
-                break;
+        try {
+            $username = self::getCurrentUsername();
+            $products = self::getAllProducts($username);
+            $found = false;
+            
+            for ($i = 0; $i < count($products); $i++) {
+                if ($products[$i]->getId() == $product->getId()) {
+                    $products[$i] = $product;
+                    $found = true;
+                    break;
+                }
             }
-        }
-        
-        if (!$found) {
+            
+            if (!$found) {
+                return false;
+            }
+            
+            return self::writeAllProducts($products, $username);
+        } catch (Exception $e) {
             return false;
         }
-        
-        return self::writeAllProducts($products);
     }
     
     /**
-     * Delete a product by ID
+     * Delete a product by ID for the current user
      */
     public static function deleteProduct($id) {
-        $products = self::getAllProducts();
-        $filtered = array_filter($products, function($p) use ($id) {
-            return $p->getId() != $id;
-        });
-        
-        if (count($filtered) == count($products)) {
-            return false; // Product not found
+        try {
+            $username = self::getCurrentUsername();
+            $products = self::getAllProducts($username);
+            $filtered = array_filter($products, function($p) use ($id) {
+                return $p->getId() != $id;
+            });
+            
+            if (count($filtered) == count($products)) {
+                return false; // Product not found
+            }
+            
+            return self::writeAllProducts(array_values($filtered), $username);
+        } catch (Exception $e) {
+            return false;
         }
-        
-        return self::writeAllProducts(array_values($filtered));
     }
     
     /**
-     * Get a product by ID
+     * Get a product by ID for the current user
      */
     public static function getProduct($id) {
-        $products = self::getAllProducts();
-        foreach ($products as $product) {
-            if ($product->getId() == $id) {
-                return $product;
+        try {
+            $username = self::getCurrentUsername();
+            $products = self::getAllProducts($username);
+            foreach ($products as $product) {
+                if ($product->getId() == $id) {
+                    return $product;
+                }
             }
+        } catch (Exception $e) {
+            // Return null if username not available
         }
         return null;
     }
     
     /**
-     * Check if a product ID exists
+     * Check if a product ID exists for the current user
      */
     public static function productExists($id) {
         return self::getProduct($id) !== null;
     }
     
     /**
-     * Get all products sorted by ID
+     * Get all products sorted by ID for the current user
      */
     public static function getAllProductsSorted() {
-        $products = self::getAllProducts();
-        usort($products, function($a, $b) {
-            return $a->getId() - $b->getId();
-        });
-        return $products;
+        try {
+            $username = self::getCurrentUsername();
+            $products = self::getAllProducts($username);
+            usort($products, function($a, $b) {
+                return $a->getId() - $b->getId();
+            });
+            return $products;
+        } catch (Exception $e) {
+            return [];
+        }
     }
     
     /**
-     * Update product quantity (add)
+     * Update product quantity (add) for the current user
      */
     public static function addQuantity($id, $quantityToAdd) {
         $product = self::getProduct($id);
@@ -164,7 +252,7 @@ class FileDatabaseUtil {
     }
     
     /**
-     * Update product quantity (subtract)
+     * Update product quantity (subtract) for the current user
      */
     public static function subtractQuantity($id, $quantityToSubtract) {
         $product = self::getProduct($id);
@@ -178,6 +266,30 @@ class FileDatabaseUtil {
         
         $product->setQuantity($product->getQuantity() - $quantityToSubtract);
         return self::updateProduct($product);
+    }
+    
+    /**
+     * Delete all products for a specific user (delete user's product database file)
+     * @param string $username The username whose products should be deleted
+     * @return bool True if successful, false otherwise
+     */
+    public static function deleteUserProducts($username) {
+        try {
+            $sanitizedUsername = self::sanitizeUsername($username);
+            $dbFile = sprintf(self::$DB_FILE_TEMPLATE, $sanitizedUsername);
+            $file = __DIR__ . "/../" . $dbFile;
+            
+            // Check if file exists
+            if (file_exists($file)) {
+                // Delete the file
+                return unlink($file);
+            }
+            
+            // File doesn't exist, consider it successful (nothing to delete)
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
 

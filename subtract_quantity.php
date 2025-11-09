@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once 'auth.php';
+requireLogin();
 require_once 'classes/FileDatabaseUtil.php';
 
 $message = "";

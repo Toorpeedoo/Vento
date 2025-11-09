@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,8 +20,17 @@ session_start();
             </div>
             <div class="splash-right">
                 <div class="button-group">
-                    <a href="main_menu.php" class="btn btn-primary btn-large">Continue</a>
-                    <a href="#" onclick="window.close(); return false;" class="btn btn-secondary">Exit</a>
+                    <?php if (isLoggedIn()): ?>
+                        <?php if (isAdmin()): ?>
+                            <a href="admin_dashboard.php" class="btn btn-primary btn-large">Admin Dashboard</a>
+                        <?php else: ?>
+                            <a href="main_menu.php" class="btn btn-primary btn-large">Continue to Menu</a>
+                        <?php endif; ?>
+                        <a href="logout.php" class="btn btn-secondary">Logout</a>
+                    <?php else: ?>
+                        <a href="login.php" class="btn btn-primary btn-large">Login</a>
+                        <a href="signup.php" class="btn btn-secondary">Sign Up</a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

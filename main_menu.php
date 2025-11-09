@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once 'auth.php';
+requireLogin();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,8 +16,12 @@ session_start();
         <div class="nav-bar">
             <h1 class="nav-title">VENTO Inventory System</h1>
             <div class="nav-actions">
-                <a href="index.php" class="btn btn-secondary btn-small">Back to Main</a>
-                <a href="#" onclick="window.close(); return false;" class="btn btn-danger btn-small">Exit</a>
+                <span style="color: var(--gray-700); margin-right: 1rem;">Welcome, <?php echo htmlspecialchars(getCurrentUsername()); ?>!</span>
+                <?php if (isAdmin()): ?>
+                    <a href="admin_dashboard.php" class="btn btn-warning btn-small">Admin Dashboard</a>
+                <?php endif; ?>
+                <a href="logout.php" class="btn btn-danger btn-small">Logout</a>
+                <a href="#" onclick="window.close(); return false;" class="btn btn-secondary btn-small">Exit</a>
             </div>
         </div>
 

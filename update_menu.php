@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once 'auth.php';
+requireLogin();
 ?>
 <!DOCTYPE html>
 <html lang="en">
