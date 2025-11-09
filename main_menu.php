@@ -21,7 +21,6 @@ requireLogin();
                     <a href="admin_dashboard.php" class="btn btn-warning btn-small">Admin Dashboard</a>
                 <?php endif; ?>
                 <a href="logout.php" class="btn btn-danger btn-small">Logout</a>
-                <a href="#" onclick="window.close(); return false;" class="btn btn-secondary btn-small">Exit</a>
             </div>
         </div>
 

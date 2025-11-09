@@ -67,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h1 class="nav-title">Add Product</h1>
             <div class="nav-actions">
                 <a href="main_menu.php" class="btn btn-secondary btn-small">Back to Menu</a>
-                <a href="#" onclick="window.close(); return false;" class="btn btn-danger btn-small">Exit</a>
             </div>
         </div>
 
