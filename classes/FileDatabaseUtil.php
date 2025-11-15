@@ -269,6 +269,42 @@ class FileDatabaseUtil {
     }
     
     /**
+     * Get product count for a specific user without loading all products
+     * Optimized for performance - just counts lines instead of parsing all products
+     * @param string $username The username to count products for
+     * @return int The number of products
+     */
+    public static function getProductCount($username) {
+        try {
+            $file = self::getDbFile($username);
+        } catch (Exception $e) {
+            return 0;
+        }
+        
+        if (!file_exists($file)) {
+            return 0;
+        }
+        
+        // Count non-empty lines without parsing products
+        $count = 0;
+        $handle = fopen($file, 'r');
+        
+        if ($handle === false) {
+            return 0;
+        }
+        
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            if (!empty($line)) {
+                $count++;
+            }
+        }
+        
+        fclose($handle);
+        return $count;
+    }
+    
+    /**
      * Delete all products for a specific user (delete user's product database file)
      * @param string $username The username whose products should be deleted
      * @return bool True if successful, false otherwise

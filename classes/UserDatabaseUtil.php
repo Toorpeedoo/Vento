@@ -80,15 +80,42 @@ class UserDatabaseUtil {
     
     /**
      * Get a user by username (case-insensitive)
+     * Optimized to read file line by line and stop early when found
      */
     public static function getUser($username) {
-        $users = self::getAllUsers();
+        $file = self::getDbFile();
+        
+        if (!file_exists($file)) {
+            return null;
+        }
+        
         $usernameLower = strtolower(trim($username));
-        foreach ($users as $user) {
-            if (strtolower($user->getUsername()) === $usernameLower) {
-                return $user;
+        $handle = fopen($file, 'r');
+        
+        if ($handle === false) {
+            return null;
+        }
+        
+        // Read file line by line and stop as soon as we find the user
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            
+            // Quick check: parse username from line without creating full User object
+            $parts = explode("|", $line);
+            if (count($parts) >= 1) {
+                $lineUsername = trim($parts[0]);
+                if (strtolower($lineUsername) === $usernameLower) {
+                    // Found matching username, now parse the full user object
+                    fclose($handle);
+                    return User::fromFileString($line);
+                }
             }
         }
+        
+        fclose($handle);
         return null;
     }
     
@@ -101,14 +128,47 @@ class UserDatabaseUtil {
     
     /**
      * Verify user credentials
+     * Optimized to read file line by line and stop early when found
      */
     public static function verifyUser($username, $password) {
-        $user = self::getUser($username);
-        if ($user === null) {
+        $file = self::getDbFile();
+        
+        if (!file_exists($file)) {
             return false;
         }
         
-        return $user->verifyPassword($password);
+        $usernameLower = strtolower(trim($username));
+        $handle = fopen($file, 'r');
+        
+        if ($handle === false) {
+            return false;
+        }
+        
+        // Read file line by line and stop as soon as we find the user
+        while (($line = fgets($handle)) !== false) {
+            $line = trim($line);
+            if (empty($line)) {
+                continue;
+            }
+            
+            // Quick check: parse username from line without creating full User object
+            $parts = explode("|", $line);
+            if (count($parts) >= 1) {
+                $lineUsername = trim($parts[0]);
+                if (strtolower($lineUsername) === $usernameLower) {
+                    // Found matching username, now parse and verify password
+                    fclose($handle);
+                    $user = User::fromFileString($line);
+                    if ($user === null) {
+                        return false;
+                    }
+                    return $user->verifyPassword($password);
+                }
+            }
+        }
+        
+        fclose($handle);
+        return false;
     }
     
     /**

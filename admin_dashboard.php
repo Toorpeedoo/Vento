@@ -29,19 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Get all users
+// Get all users (optimized - single load instead of multiple)
 $allUsers = UserDatabaseUtil::getAllUsers();
-$regularUsers = UserDatabaseUtil::getAllRegularUsers();
+$regularUsers = array_filter($allUsers, function($user) {
+    return !$user->getIsAdmin();
+});
 $adminUsers = array_filter($allUsers, function($user) {
     return $user->getIsAdmin();
 });
 
-// Get product counts for each user
+// Get product counts for each user (optimized - just counts lines without parsing products)
 require_once 'classes/FileDatabaseUtil.php';
 $userStats = [];
 foreach ($allUsers as $user) {
-    $products = FileDatabaseUtil::getAllProducts($user->getUsername());
-    $userStats[$user->getUsername()] = count($products);
+    $userStats[$user->getUsername()] = FileDatabaseUtil::getProductCount($user->getUsername());
 }
 ?>
 <!DOCTYPE html>
