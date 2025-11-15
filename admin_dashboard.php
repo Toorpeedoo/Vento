@@ -59,7 +59,6 @@ foreach ($allUsers as $user) {
             <h1 class="nav-title">Admin Dashboard - VENTO</h1>
             <div class="nav-actions">
                 <span style="color: var(--gray-700); margin-right: 1rem;">Welcome, <?php echo htmlspecialchars(getCurrentUsername()); ?>!</span>
-                <a href="main_menu.php" class="btn btn-secondary btn-small">User Menu</a>
                 <a href="logout.php" class="btn btn-danger btn-small">Logout</a>
             </div>
         </div>
