@@ -4,7 +4,34 @@ function getMongoUri(): string {
   if (!process.env.MONGODB_URI) {
     throw new Error('Please add your Mongo URI to .env.local');
   }
-  return process.env.MONGODB_URI;
+  
+  let uri = process.env.MONGODB_URI.trim();
+  
+  // Ensure mongodb+srv:// connections have proper parameters
+  if (uri.startsWith('mongodb+srv://')) {
+    try {
+      // For mongodb+srv://, TLS is automatic, but we should ensure proper connection options
+      // Add retryWrites and retryReads to the URI if not already present
+      const url = new URL(uri);
+      if (!url.searchParams.has('retryWrites')) {
+        url.searchParams.set('retryWrites', 'true');
+      }
+      if (!url.searchParams.has('w')) {
+        url.searchParams.set('w', 'majority');
+      }
+      // Ensure SSL/TLS is not explicitly disabled or set incorrectly
+      url.searchParams.delete('ssl'); // Remove if present, as it's not needed for mongodb+srv
+      url.searchParams.delete('tls'); // Remove if present, as it's automatic
+      uri = url.toString();
+    } catch (error) {
+      // If URL parsing fails, return the original URI
+      // This might happen if the URI format is non-standard
+      console.warn('Failed to parse MongoDB URI, using as-is:', error);
+      return uri;
+    }
+  }
+  
+  return uri;
 }
 
 function getDbName(): string {
@@ -28,13 +55,24 @@ function getClientPromise(): Promise<MongoClient> {
   const uri = getMongoUri();
 
   // Create MongoDB client with proper connection pool settings
-  client = new MongoClient(uri, {
+  // For MongoDB Atlas (mongodb+srv://), SSL/TLS is automatically enabled
+  // Don't override TLS settings as they're handled by the connection string
+  const options: any = {
     maxPoolSize: 10,
     minPoolSize: 1,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 30000, // Increased from 5s to 30s for better reliability
     socketTimeoutMS: 45000,
-    connectTimeoutMS: 10000,
-  });
+    connectTimeoutMS: 30000, // Increased from 10s to 30s for better reliability
+    // Enable retries for better reliability (also set in URI, but ensure in options)
+    retryWrites: true,
+    retryReads: true,
+    // Connection pool monitoring
+    monitorCommands: false, // Set to true for debugging
+    // Let the URI handle SSL/TLS configuration - don't override
+    // This is especially important for mongodb+srv:// connections
+  };
+
+  client = new MongoClient(uri, options);
 
   // Cache the connection promise globally
   globalWithMongo._mongoClientPromise = client.connect();
