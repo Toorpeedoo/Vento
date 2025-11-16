@@ -34,26 +34,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# PHP files (old)
-*.php
-vendor/
-composer.json
-composer.lock
-
-# Old CSS
-/css
-
-# Old data files
-/data
-
-# Installation scripts
-*.ps1
-*.sh
-*.bat
-
-# Documentation
-MONGODB_INSTALLATION.md
-MONGODB_DLL_INSTALL_GUIDE.md
-*.tgz
-*.zip
