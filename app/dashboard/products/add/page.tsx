@@ -33,7 +33,8 @@ function AddProductContent() {
     const id = Number(formData.get('id'));
     const productName = formData.get('productName') as string;
     const price = Number(formData.get('price'));
-    const quantity = Number(formData.get('quantity'));
+    const quantityRaw = formData.get('quantity');
+    const quantity = quantityRaw ? Number(quantityRaw) : 0;
 
     try {
       const res = await fetch('/api/products', {
@@ -159,13 +160,12 @@ function AddProductContent() {
 
             <div>
               <label htmlFor="quantity" className="label">
-                Quantity
+                Quantity <span className="text-gray-400 text-sm">(optional)</span>
               </label>
               <input
                 type="number"
                 id="quantity"
                 name="quantity"
-                required
                 min="0"
                 className="input"
                 placeholder="0"

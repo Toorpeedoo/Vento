@@ -15,14 +15,17 @@ async function handler(req: NextRequest, user: { username: string; isAdmin: bool
     if (req.method === 'POST') {
       const { id, productName, price, quantity } = await req.json();
 
-      if (!id || !productName || price === undefined || quantity === undefined) {
+      if (!id || !productName || price === undefined) {
         return NextResponse.json(
-          { error: 'All fields are required' },
+          { error: 'ID, product name, and price are required' },
           { status: 400 }
         );
       }
 
-      if (id < 0 || price < 0 || quantity < 0) {
+      // Default quantity to 0 if not provided
+      const finalQuantity = quantity !== undefined ? Number(quantity) : 0;
+
+      if (id < 0 || price < 0 || finalQuantity < 0) {
         return NextResponse.json(
           { error: 'ID, price, and quantity must be non-negative' },
           { status: 400 }
@@ -33,7 +36,7 @@ async function handler(req: NextRequest, user: { username: string; isAdmin: bool
         id: Number(id),
         productName: productName.trim(),
         price: Number(price),
-        quantity: Number(quantity),
+        quantity: finalQuantity,
         username: user.username,
       };
 
