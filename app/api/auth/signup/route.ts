@@ -57,10 +57,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await setSession({
-      username: username.trim(),
-      isAdmin: false,
-    });
+    try {
+      await setSession({
+        username: username.trim(),
+        isAdmin: false,
+      });
+    } catch (sessionError) {
+      console.error('Session error:', sessionError);
+      throw new Error('Failed to create session');
+    }
 
     return NextResponse.json({
       success: true,

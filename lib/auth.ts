@@ -3,15 +3,23 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { SessionUser } from './types';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret === 'your-secret-key-change-in-production') {
+    throw new Error('JWT_SECRET environment variable is not set or is using the default value. Please set it in Vercel environment variables.');
+  }
+  return secret;
+}
 
 export function createToken(user: SessionUser): string {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
+  const secret = getJwtSecret();
+  return jwt.sign(user, secret, { expiresIn: '7d' });
 }
 
 export function verifyToken(token: string): SessionUser | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as SessionUser;
+    const secret = getJwtSecret();
+    return jwt.verify(token, secret) as SessionUser;
   } catch {
     return null;
   }

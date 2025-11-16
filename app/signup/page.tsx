@@ -32,8 +32,11 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Signup failed');
+        // Show the actual error message from the server
+        const errorMsg = data.error || data.message || 'Signup failed';
+        setError(errorMsg);
         setLoading(false);
+        console.error('Signup failed:', data);
         return;
       }
 

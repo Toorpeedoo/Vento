@@ -31,10 +31,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await setSession({
-      username: user.username,
-      isAdmin: user.isAdmin,
-    });
+    try {
+      await setSession({
+        username: user.username,
+        isAdmin: user.isAdmin,
+      });
+    } catch (sessionError) {
+      console.error('Session error:', sessionError);
+      throw new Error('Failed to create session');
+    }
 
     return NextResponse.json({
       success: true,

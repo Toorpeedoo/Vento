@@ -29,8 +29,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Login failed');
+        // Show the actual error message from the server
+        const errorMsg = data.error || data.message || 'Login failed';
+        setError(errorMsg);
         setLoading(false);
+        console.error('Login failed:', data);
         return;
       }
 
@@ -42,6 +45,7 @@ export default function LoginPage() {
       }
       router.refresh();
     } catch (err) {
+      console.error('Login error:', err);
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
