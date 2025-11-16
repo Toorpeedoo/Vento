@@ -121,7 +121,6 @@ function DashboardContent() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {menuCards.map((card) => {
               const Icon = card.icon;
