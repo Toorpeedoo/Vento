@@ -2,9 +2,9 @@
 session_start();
 require_once 'auth.php';
 requireLogin();
-require_once 'classes/FileDatabaseUtil.php';
+require_once 'classes/ProductDatabaseUtil.php';
 
-$products = FileDatabaseUtil::getAllProductsSorted();
+$products = ProductDatabaseUtil::getAllProductsSorted();
 ?>
 <!DOCTYPE html>
 <html lang="en">

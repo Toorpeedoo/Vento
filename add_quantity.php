@@ -2,7 +2,8 @@
 session_start();
 require_once 'auth.php';
 requireLogin();
-require_once 'classes/FileDatabaseUtil.php';
+require_once 'classes/Product.php';
+require_once 'classes/ProductDatabaseUtil.php';
 
 $message = "";
 $messageType = "";
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("ID and quantity must be positive numbers.");
             }
             
-            if (FileDatabaseUtil::addQuantity($id, $quantity)) {
+            if (ProductDatabaseUtil::addQuantity($id, $quantity)) {
                 $message = "Quantity added successfully!";
                 $messageType = "success";
                 $_POST = array();

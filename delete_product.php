@@ -11,10 +11,10 @@ $products = FileDatabaseUtil::getAllProductsSorted();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     $id = (int)$_POST['delete_id'];
     
-    if (FileDatabaseUtil::deleteProduct($id)) {
+    if (ProductDatabaseUtil::deleteProduct($id)) {
         $message = "Product deleted successfully!";
         $messageType = "success";
-        $products = FileDatabaseUtil::getAllProductsSorted(); // Refresh list
+        $products = ProductDatabaseUtil::getAllProductsSorted(); // Refresh list
     } else {
         $message = "Product ID does not exist.";
         $messageType = "error";

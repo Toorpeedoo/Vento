@@ -3,9 +3,9 @@ session_start();
 require_once 'auth.php';
 requireLogin();
 require_once 'classes/Product.php';
-require_once 'classes/FileDatabaseUtil.php';
+require_once 'classes/ProductDatabaseUtil.php';
 
-$products = FileDatabaseUtil::getAllProductsSorted();
+$products = ProductDatabaseUtil::getAllProductsSorted();
 $message = "";
 $messageType = "";
 $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'info';
@@ -38,22 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception("Values must be positive numbers.");
                 }
                 
-                if (!FileDatabaseUtil::productExists($id)) {
-                    $message = "This ID does not exist.";
+                if (!ProductDatabaseUtil::productExists($id)) {
+                    $message = "Error: Product with that ID not found.";
                     $messageType = "error";
-                    $activeTab = 'info';
                 } else {
                     $product = new Product($id, $productName, $price, $quantity);
-                    if (FileDatabaseUtil::updateProduct($product)) {
+                    
+                    if (ProductDatabaseUtil::updateProduct($product)) {
                         $message = "Product updated successfully!";
                         $messageType = "success";
-                        $activeTab = 'info';
-                        $_POST = array();
-                        $products = FileDatabaseUtil::getAllProductsSorted(); // Refresh list
+                        
+                        // Refresh product list
+                        $products = ProductDatabaseUtil::getAllProductsSorted(); // Refresh list
                     } else {
                         $message = "Error: Failed to update product.";
                         $messageType = "error";
-                        $activeTab = 'info';
                     }
                 }
             } catch (Exception $e) {

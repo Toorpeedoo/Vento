@@ -2,7 +2,8 @@
 session_start();
 require_once 'auth.php';
 requireLogin();
-require_once 'classes/FileDatabaseUtil.php';
+require_once 'classes/Product.php';
+require_once 'classes/ProductDatabaseUtil.php';
 
 $message = "";
 $messageType = "";

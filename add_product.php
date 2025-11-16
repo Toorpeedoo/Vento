@@ -3,7 +3,7 @@ session_start();
 require_once 'auth.php';
 requireLogin();
 require_once 'classes/Product.php';
-require_once 'classes/FileDatabaseUtil.php';
+require_once 'classes/ProductDatabaseUtil.php';
 
 $message = "";
 $messageType = "";
@@ -31,12 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Values must be positive numbers.");
             }
             
-            if (FileDatabaseUtil::productExists($id)) {
+            if (ProductDatabaseUtil::productExists($id)) {
                 $message = "Error: ID already exists. Please use a unique ID.";
                 $messageType = "error";
             } else {
                 $product = new Product($id, $productName, $price, $quantity);
-                if (FileDatabaseUtil::addProduct($product)) {
+                if (ProductDatabaseUtil::addProduct($product)) {
                     $message = "Product added successfully!";
                     $messageType = "success";
                     // Clear form

@@ -1,59 +1,34 @@
 <?php
 require_once 'User.php';
+require_once 'MongoDBConnection.php';
 
 /**
- * File-based user database utility class
- * Stores users in a text file with format: username|password_hash|created_at|isAdmin
+ * MongoDB-based user database utility class
  */
 class UserDatabaseUtil {
-    private static $DB_FILE = "data/accounts.txt";
+    private const COLLECTION = "users";
     
     /**
-     * Get the database file path
-     */
-    private static function getDbFile() {
-        $file = __DIR__ . "/../" . self::$DB_FILE;
-        $dir = dirname($file);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        return $file;
-    }
-    
-    /**
-     * Read all users from file
+     * Read all users from MongoDB
      */
     public static function getAllUsers() {
+        $documents = MongoDBConnection::find(self::COLLECTION);
         $users = [];
-        $file = self::getDbFile();
         
-        if (!file_exists($file)) {
-            return $users;
-        }
-        
-        $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $user = User::fromFileString($line);
-            if ($user !== null) {
-                $users[] = $user;
-            }
+        foreach ($documents as $doc) {
+            // Try to get plain text password, fall back to passwordHash for backward compatibility
+            $password = $doc->password ?? $doc->passwordHash ?? '';
+            $user = new User(
+                $doc->username,
+                $password,
+                $doc->createdAt ?? date('Y-m-d H:i:s'),
+                false, // Store as plain text, not hashed
+                $doc->isAdmin ?? false
+            );
+            $users[] = $user;
         }
         
         return $users;
-    }
-    
-    /**
-     * Write all users to file
-     */
-    private static function writeAllUsers($users) {
-        $file = self::getDbFile();
-        $content = "";
-        
-        foreach ($users as $user) {
-            $content .= $user->toFileString() . "\n";
-        }
-        
-        return file_put_contents($file, $content) !== false;
     }
     
     /**
@@ -64,59 +39,46 @@ class UserDatabaseUtil {
             return false;
         }
         
-        $users = self::getAllUsers();
-        
         // Check if username already exists (case-insensitive)
-        $newUsernameLower = strtolower($user->getUsername());
-        foreach ($users as $u) {
-            if (strtolower($u->getUsername()) === $newUsernameLower) {
-                return false; // Username already exists
-            }
+        if (self::usernameExists($user->getUsername())) {
+            return false;
         }
         
-        $users[] = $user;
-        return self::writeAllUsers($users);
+        $document = [
+            'username' => $user->getUsername(),
+            'password' => $user->getPlainPassword() ?: $user->getPasswordHash(), // Store plain text password
+            'passwordHash' => $user->getPlainPassword() ?: $user->getPasswordHash(), // Keep for backward compatibility
+            'createdAt' => $user->getCreatedAt(),
+            'isAdmin' => $user->getIsAdmin(),
+            'createdAtTimestamp' => new MongoDB\BSON\UTCDateTime()
+        ];
+        
+        return MongoDBConnection::insertOne(self::COLLECTION, $document);
     }
     
     /**
      * Get a user by username (case-insensitive)
-     * Optimized to read file line by line and stop early when found
      */
     public static function getUser($username) {
-        $file = self::getDbFile();
+        $filter = [
+            'username' => new MongoDB\BSON\Regex('^' . preg_quote(trim($username), '/') . '$', 'i')
+        ];
         
-        if (!file_exists($file)) {
+        $doc = MongoDBConnection::findOne(self::COLLECTION, $filter);
+        
+        if ($doc === null) {
             return null;
         }
         
-        $usernameLower = strtolower(trim($username));
-        $handle = fopen($file, 'r');
-        
-        if ($handle === false) {
-            return null;
-        }
-        
-        // Read file line by line and stop as soon as we find the user
-        while (($line = fgets($handle)) !== false) {
-            $line = trim($line);
-            if (empty($line)) {
-                continue;
-            }
-            
-            // Quick check: parse username from line without creating full User object
-            $parts = explode("|", $line);
-            if (count($parts) >= 1) {
-                $lineUsername = trim($parts[0]);
-                if (strtolower($lineUsername) === $usernameLower) {
-                    // Found matching username, now parse the full user object
-                    fclose($handle);
-                    return User::fromFileString($line);
-                }
-            }
-        }
-        
-        fclose($handle);
-        return null;
+        // Try to get plain text password, fall back to passwordHash for backward compatibility
+        $password = $doc->password ?? $doc->passwordHash ?? '';
+        return new User(
+            $doc->username,
+            $password,
+            $doc->createdAt ?? date('Y-m-d H:i:s'),
+            false, // Store as plain text, not hashed
+            $doc->isAdmin ?? false
+        );
     }
     
     /**
@@ -128,116 +90,69 @@ class UserDatabaseUtil {
     
     /**
      * Verify user credentials
-     * Optimized to read file line by line and stop early when found
      */
     public static function verifyUser($username, $password) {
-        $file = self::getDbFile();
+        $user = self::getUser($username);
         
-        if (!file_exists($file)) {
+        if ($user === null) {
             return false;
         }
         
-        $usernameLower = strtolower(trim($username));
-        $handle = fopen($file, 'r');
-        
-        if ($handle === false) {
-            return false;
-        }
-        
-        // Read file line by line and stop as soon as we find the user
-        while (($line = fgets($handle)) !== false) {
-            $line = trim($line);
-            if (empty($line)) {
-                continue;
-            }
-            
-            // Quick check: parse username from line without creating full User object
-            $parts = explode("|", $line);
-            if (count($parts) >= 1) {
-                $lineUsername = trim($parts[0]);
-                if (strtolower($lineUsername) === $usernameLower) {
-                    // Found matching username, now parse and verify password
-                    fclose($handle);
-                    $user = User::fromFileString($line);
-                    if ($user === null) {
-                        return false;
-                    }
-                    return $user->verifyPassword($password);
-                }
-            }
-        }
-        
-        fclose($handle);
-        return false;
+        return $user->verifyPassword($password);
     }
     
     /**
      * Update an existing user
-     * @param string $oldUsername The username of the user to update
-     * @param User $updatedUser The updated user object
-     * @return bool True if successful, false otherwise
      */
     public static function updateUser($oldUsername, $updatedUser) {
         if ($updatedUser === null) {
             return false;
         }
         
-        $users = self::getAllUsers();
-        $oldUsernameLower = strtolower(trim($oldUsername));
-        $found = false;
-        
-        for ($i = 0; $i < count($users); $i++) {
-            if (strtolower($users[$i]->getUsername()) === $oldUsernameLower) {
-                // If username is being changed, check if new username already exists
-                $newUsernameLower = strtolower($updatedUser->getUsername());
-                if ($oldUsernameLower !== $newUsernameLower) {
-                    // Check if new username already exists
-                    foreach ($users as $u) {
-                        if (strtolower($u->getUsername()) === $newUsernameLower) {
-                            return false; // New username already exists
-                        }
-                    }
-                }
-                $users[$i] = $updatedUser;
-                $found = true;
-                break;
+        // If username is being changed, check if new username already exists
+        if (strtolower(trim($oldUsername)) !== strtolower(trim($updatedUser->getUsername()))) {
+            if (self::usernameExists($updatedUser->getUsername())) {
+                return false;
             }
         }
         
-        if (!$found) {
-            return false;
-        }
+        $filter = [
+            'username' => new MongoDB\BSON\Regex('^' . preg_quote(trim($oldUsername), '/') . '$', 'i')
+        ];
         
-        return self::writeAllUsers($users);
+        $plainPassword = $updatedUser->getPlainPassword() ?: $updatedUser->getPasswordHash();
+        $update = [
+            '$set' => [
+                'username' => $updatedUser->getUsername(),
+                'password' => $plainPassword, // Store plain text password
+                'passwordHash' => $plainPassword, // Keep for backward compatibility
+                'createdAt' => $updatedUser->getCreatedAt(),
+                'isAdmin' => $updatedUser->getIsAdmin(),
+                'updatedAt' => new MongoDB\BSON\UTCDateTime()
+            ]
+        ];
+        
+        return MongoDBConnection::updateOne(self::COLLECTION, $filter, $update);
     }
     
     /**
      * Delete a user by username and their associated product data
-     * @param string $username The username to delete
-     * @return bool True if successful, false otherwise
      */
     public static function deleteUser($username) {
-        $users = self::getAllUsers();
-        $usernameLower = strtolower(trim($username));
-        $filtered = array_filter($users, function($user) use ($usernameLower) {
-            return strtolower($user->getUsername()) !== $usernameLower;
-        });
-        
-        if (count($filtered) == count($users)) {
-            return false; // User not found
-        }
-        
-        // Delete user's product database file
-        require_once __DIR__ . '/FileDatabaseUtil.php';
-        FileDatabaseUtil::deleteUserProducts($username);
+        // Delete user's products
+        require_once __DIR__ . '/ProductDatabaseUtil.php';
+        ProductDatabaseUtil::deleteUserProducts($username);
         
         // Delete the user account
-        return self::writeAllUsers(array_values($filtered));
+        $filter = [
+            'username' => new MongoDB\BSON\Regex('^' . preg_quote(trim($username), '/') . '$', 'i')
+        ];
+        
+        return MongoDBConnection::deleteOne(self::COLLECTION, $filter);
     }
     
     /**
      * Get all non-admin users
-     * @return array Array of User objects that are not admins
      */
     public static function getAllRegularUsers() {
         $allUsers = self::getAllUsers();

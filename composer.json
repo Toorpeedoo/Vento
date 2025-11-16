@@ -1,0 +1,8 @@
+{
+    "name": "vento/inventory",
+    "description": "VENTO Inventory Management System",
+    "type": "project",
+    "require": {
+        "mongodb/mongodb": "^2.1"
+    }
+}

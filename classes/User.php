@@ -40,6 +40,13 @@ class User {
     }
     
     /**
+     * Get password hash (for database storage)
+     */
+    public function getPasswordHash() {
+        return $this->password;
+    }
+    
+    /**
      * Get plain text password (for admin viewing)
      */
     public function getPlainPassword() {
@@ -59,36 +66,34 @@ class User {
             throw new InvalidArgumentException("Password cannot be empty");
         }
         $password = trim($password);
-        // Store plain text password for admin viewing
+        // Store plain text password (for admin viewing and database storage)
         $this->plainPassword = $password;
-        // Also create hash for authentication
-        if (!$isHashed) {
-            $this->password = password_hash($password, PASSWORD_DEFAULT);
-        } else {
-            $this->password = $password;
-            // If it's a hash, we can't retrieve plain text, so set to null
-            $this->plainPassword = null;
-        }
+        $this->password = $password; // Store as plain text, not hashed
     }
     
     /**
-     * Set plain text password directly (updates both plain text and hash)
+     * Set plain text password directly
      */
     public function setPlainPassword($password) {
         $this->plainPassword = $password;
-        // Also update the hash for authentication
-        if (!empty($password)) {
-            $this->password = password_hash($password, PASSWORD_DEFAULT);
-        }
+        $this->password = $password; // Store as plain text
     }
     
     /**
-     * Set password hash directly (for loading from file)
+     * Set password hash directly (for backward compatibility - but we store plain text now)
      */
     public function setPasswordHash($passwordHash) {
-        $this->password = trim($passwordHash);
-        // If setting a hash, we don't have the plain text
-        $this->plainPassword = null;
+        // Check if it's a hash (starts with $2y$) or plain text
+        if (strpos($passwordHash, '$2y$') === 0 || strpos($passwordHash, '$2a$') === 0 || strpos($passwordHash, '$2b$') === 0) {
+            // It's a hash, but we can't convert it back to plain text
+            // Store it as-is (for backward compatibility with old data)
+            $this->password = trim($passwordHash);
+            $this->plainPassword = null;
+        } else {
+            // It's plain text
+            $this->password = trim($passwordHash);
+            $this->plainPassword = trim($passwordHash);
+        }
     }
     
     public function setCreatedAt($createdAt) {
@@ -100,18 +105,26 @@ class User {
     }
     
     /**
-     * Verify password against hash or plain text
+     * Verify password against plain text or hash (for backward compatibility)
      */
     public function verifyPassword($password) {
         if (empty($this->password)) {
             return false;
         }
+        $password = trim($password);
+        
         // If we have plain text password stored, compare directly
         if ($this->plainPassword !== null) {
             return $this->plainPassword === $password;
         }
-        // Otherwise, verify against hash
-        return password_verify($password, $this->password);
+        
+        // If password looks like a hash, verify against hash (for backward compatibility)
+        if (strpos($this->password, '$2y$') === 0 || strpos($this->password, '$2a$') === 0 || strpos($this->password, '$2b$') === 0) {
+            return password_verify($password, $this->password);
+        }
+        
+        // Otherwise, compare as plain text
+        return $this->password === $password;
     }
     
     /**
