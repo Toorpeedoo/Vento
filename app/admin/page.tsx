@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
-import { Users, UserCheck, Crown, Package, Trash2, AlertCircle } from 'lucide-react';
+import { Users, UserCheck, Crown, Package, Trash2, AlertCircle, Search, Shield } from 'lucide-react';
 import { User } from '@/lib/types';
 
 export default function AdminPage() {
@@ -18,10 +18,25 @@ function AdminContent() {
   const [users, setUsers] = useState<(User & { productCount: number })[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentUser, setCurrentUser] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchUsers();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch('/api/auth/session');
+      const data = await res.json();
+      if (data.user) {
+        setCurrentUser(data.user.username);
+      }
+    } catch (err) {
+      console.error('Failed to get current user');
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -36,6 +51,31 @@ function AdminContent() {
       setError('An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleAdmin = async (username: string, currentIsAdmin: boolean) => {
+    const action = currentIsAdmin ? 'remove admin privileges from' : 'grant admin privileges to';
+    if (!confirm(`Are you sure you want to ${action} user "${username}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, isAdmin: !currentIsAdmin }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to update user');
+      }
+    } catch (err) {
+      alert('An error occurred');
     }
   };
 
@@ -62,6 +102,10 @@ function AdminContent() {
       alert('An error occurred');
     }
   };
+
+  const filteredUsers = users.filter((user) =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const regularUsers = users.filter((u) => !u.isAdmin);
   const adminUsers = users.filter((u) => u.isAdmin);
@@ -119,7 +163,19 @@ function AdminContent() {
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+            </div>
           </div>
 
           {loading ? (
@@ -145,7 +201,7 @@ function AdminContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{user.username}</td>
                       <td className="px-6 py-4">
@@ -169,13 +225,30 @@ function AdminContent() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleDeleteUser(user.username)}
-                          className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm font-medium flex items-center gap-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
+                        {user.isAdmin && user.username === currentUser ? (
+                          <span className="text-gray-500 text-sm italic">Current Admin</span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleToggleAdmin(user.username, user.isAdmin)}
+                              className={`px-3 py-1.5 rounded-lg transition-all text-sm font-medium flex items-center gap-1 ${
+                                user.isAdmin 
+                                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                              }`}
+                            >
+                              <Shield className="w-4 h-4" />
+                              {user.isAdmin ? 'Remove Admin' : 'Make Admin'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.username)}
+                              className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm font-medium flex items-center gap-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

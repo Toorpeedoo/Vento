@@ -56,6 +56,17 @@ export async function updateUser(oldUsername: string, user: Partial<User>): Prom
   return result.modifiedCount > 0;
 }
 
+export async function updateUserRole(username: string, isAdmin: boolean): Promise<boolean> {
+  const collection = await getCollection<User>(COLLECTION);
+  
+  const result = await collection.updateOne(
+    { username: { $regex: new RegExp(`^${username}$`, 'i') } },
+    { $set: { isAdmin, updatedAt: new Date().toISOString() } }
+  );
+  
+  return result.modifiedCount > 0 || result.matchedCount > 0;
+}
+
 export async function deleteUser(username: string): Promise<boolean> {
   const collection = await getCollection<User>(COLLECTION);
   
