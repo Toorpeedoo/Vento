@@ -26,10 +26,12 @@ export async function createProduct(product: Omit<Product, '_id'>): Promise<bool
     return false;
   }
   
-  const result = await collection.insertOne({
+  const productDoc: Product = {
     ...product,
     createdAt: new Date(),
-  });
+  } as Product;
+  
+  const result = await collection.insertOne(productDoc);
   
   return result.insertedId !== null;
 }
