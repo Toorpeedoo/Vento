@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth';
 import { getProduct, updateProduct } from '@/lib/db/product';
 import { Product } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 async function handler(req: NextRequest, user: { username: string; isAdmin: boolean }) {
   const id = Number(req.nextUrl.pathname.split('/')[3]);
 

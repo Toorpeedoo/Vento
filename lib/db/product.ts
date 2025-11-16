@@ -54,6 +54,35 @@ export async function updateProduct(product: Product): Promise<boolean> {
   return result.modifiedCount > 0;
 }
 
+export async function changeProductId(
+  username: string,
+  fromId: number,
+  toId: number
+): Promise<{ success: boolean; reason?: 'conflict' | 'not-found' } | { success: true }> {
+  const collection = await getCollection<Product>(COLLECTION);
+
+  if (fromId === toId) {
+    return { success: true };
+  }
+
+  // Ensure target ID doesn't already exist
+  const existingTarget = await collection.findOne({ username, id: toId });
+  if (existingTarget) {
+    return { success: false, reason: 'conflict' };
+  }
+
+  const result = await collection.updateOne(
+    { username, id: fromId },
+    { $set: { id: toId, updatedAt: new Date() } }
+  );
+
+  if (result.matchedCount === 0) {
+    return { success: false, reason: 'not-found' };
+  }
+
+  return { success: true };
+}
+
 export async function deleteProduct(username: string, id: number): Promise<boolean> {
   const collection = await getCollection<Product>(COLLECTION);
   

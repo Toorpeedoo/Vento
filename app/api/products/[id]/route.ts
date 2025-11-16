@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
-import { getProduct, updateProduct, deleteProduct } from '@/lib/db/product';
+import { getProduct, updateProduct, deleteProduct, changeProductId } from '@/lib/db/product';
 import { Product } from '@/lib/types';
 
+export const dynamic = 'force-dynamic';
+
 async function handler(req: NextRequest, user: { username: string; isAdmin: boolean }) {
-  const id = Number(req.nextUrl.pathname.split('/').pop());
+  let id = Number(req.nextUrl.pathname.split('/').pop());
 
   if (isNaN(id)) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
@@ -19,13 +21,42 @@ async function handler(req: NextRequest, user: { username: string; isAdmin: bool
   }
 
   if (req.method === 'PUT') {
-    const { productName, price, quantity } = await req.json();
+    const { productName, price, quantity, newId } = await req.json();
 
     if (!productName || price === undefined || quantity === undefined) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
       );
+    }
+
+    // If a newId is provided, validate and attempt to change it first
+    if (newId !== undefined && newId !== null) {
+      const parsedNewId = Number(newId);
+      if (Number.isNaN(parsedNewId) || parsedNewId < 0) {
+        return NextResponse.json(
+          { error: 'Invalid new product ID' },
+          { status: 400 }
+        );
+      }
+
+      if (parsedNewId !== id) {
+        const result = await changeProductId(user.username, id, parsedNewId);
+        if (!result.success) {
+          if (result.reason === 'conflict') {
+            return NextResponse.json(
+              { error: 'Target product ID already exists' },
+              { status: 409 }
+            );
+          }
+          return NextResponse.json(
+            { error: 'Product not found' },
+            { status: 404 }
+          );
+        }
+        // Update id to new value for subsequent update
+        id = parsedNewId;
+      }
     }
 
     const product: Product = {

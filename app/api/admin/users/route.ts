@@ -3,6 +3,8 @@ import { requireAdmin } from '@/lib/auth';
 import { getAllUsers, updateUserRole, deleteUser } from '@/lib/db/user';
 import { getProductCount } from '@/lib/db/product';
 
+export const dynamic = 'force-dynamic';
+
 async function handler(req: NextRequest, user: { username: string; isAdmin: boolean }) {
   if (req.method === 'GET') {
     const users = await getAllUsers();

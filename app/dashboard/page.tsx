@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
-import { Package, Plus, Edit, Eye, Trash2, TrendingUp } from 'lucide-react';
+import { Package, Plus, Edit, Eye, Trash2, AlertTriangle } from 'lucide-react';
 
 export default function DashboardPage() {
   return (
@@ -17,6 +17,8 @@ export default function DashboardPage() {
 function DashboardContent() {
   const [user, setUser] = useState<{ username: string; isAdmin: boolean } | null>(null);
   const [productCount, setProductCount] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [totalInventoryValue, setTotalInventoryValue] = useState(0);
 
   useEffect(() => {
     fetch('/api/auth/session')
@@ -25,7 +27,20 @@ function DashboardContent() {
 
     fetch('/api/products')
       .then((res) => res.json())
-      .then((data) => setProductCount(data.products?.length || 0));
+      .then((data) => {
+        const products = data.products || [];
+        setProductCount(products.length);
+        
+        // Calculate low stock items (quantity <= 10)
+        const lowStock = products.filter((p: any) => p.quantity <= 10).length;
+        setLowStockCount(lowStock);
+        
+        // Calculate total inventory value (sum of price * quantity)
+        const totalValue = products.reduce((sum: number, p: any) => {
+          return sum + (p.price * p.quantity);
+        }, 0);
+        setTotalInventoryValue(totalValue);
+      });
   }, []);
 
   const menuCards = [
@@ -82,23 +97,25 @@ function DashboardContent() {
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
+          <div className="bg-gradient-to-r from-yellow-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium mb-1">Active Items</p>
-                <p className="text-4xl font-black">{productCount}</p>
+                <p className="text-yellow-100 text-sm font-medium mb-1">Low Stock Items</p>
+                <p className="text-4xl font-black">{lowStockCount}</p>
               </div>
-              <TrendingUp className="w-12 h-12 opacity-80" />
+              <AlertTriangle className="w-12 h-12 opacity-80" />
             </div>
           </div>
 
           <div className="bg-gradient-to-r from-accent-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-accent-100 text-sm font-medium mb-1">Inventory Value</p>
-                <p className="text-4xl font-black">—</p>
+                <p className="text-accent-100 text-sm font-medium mb-1">Total Inventory Value</p>
+                <p className="text-4xl font-black">₱{totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
-              <Package className="w-12 h-12 opacity-80" />
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white text-2xl font-extrabold">
+                ₱
+              </div>
             </div>
           </div>
         </div>

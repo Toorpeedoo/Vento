@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
-import { Plus, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function AddProductPage() {
   return (
@@ -17,6 +17,7 @@ export default function AddProductPage() {
 
 function AddProductContent() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,7 +28,8 @@ function AddProductContent() {
     setSuccess(false);
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const id = Number(formData.get('id'));
     const productName = formData.get('productName') as string;
     const price = Number(formData.get('price'));
@@ -40,7 +42,15 @@ function AddProductContent() {
         body: JSON.stringify({ id, productName, price, quantity }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        setError('Invalid response from server');
+        setLoading(false);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || 'Failed to add product');
@@ -49,14 +59,22 @@ function AddProductContent() {
       }
 
       setSuccess(true);
-      e.currentTarget.reset();
-      
-      setTimeout(() => {
-        router.push('/dashboard/products');
-      }, 1500);
-    } catch (err) {
-      setError('An error occurred. Please try again.');
       setLoading(false);
+      
+      // Reset form using ref instead of e.currentTarget
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+      
+      // Clear success message after 2 seconds
+      setTimeout(() => {
+        setSuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Add product error:', err);
+      setError(`Network error: ${err instanceof Error ? err.message : 'Please try again'}`);
+      setLoading(false);
+      setSuccess(false);
     }
   };
 
@@ -65,6 +83,12 @@ function AddProductContent() {
       <Navbar title="VENTO Inventory" />
       
       <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            Back to Dashboard
+          </Link>
+        </div>
         <div className="mb-8">
           <h1 className="text-4xl font-black bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent mb-2">
             Add Product
@@ -87,7 +111,7 @@ function AddProductContent() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="id" className="label">
                 Product ID
