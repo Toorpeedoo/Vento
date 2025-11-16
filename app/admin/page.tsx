@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import Navbar from '@/components/Navbar';
-import { Users, UserCheck, Crown, Package, Trash2, AlertCircle, Search, Shield } from 'lucide-react';
-import { User } from '@/lib/types';
+import { Users, Package, Trash2, AlertCircle, Search, Shield, Crown } from 'lucide-react';
+import { User, Product } from '@/lib/types';
 
 export default function AdminPage() {
   return (
@@ -16,6 +16,7 @@ export default function AdminPage() {
 
 function AdminContent() {
   const [users, setUsers] = useState<(User & { productCount: number })[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState<string>('');
@@ -24,6 +25,7 @@ function AdminContent() {
   useEffect(() => {
     fetchUsers();
     fetchCurrentUser();
+    fetchAllProducts();
   }, []);
 
   const fetchCurrentUser = async () => {
@@ -51,6 +53,18 @@ function AdminContent() {
       setError('An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllProducts = async () => {
+    try {
+      const res = await fetch('/api/admin/products');
+      const data = await res.json();
+      if (res.ok) {
+        setAllProducts(data.products || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch all products');
     }
   };
 
@@ -107,8 +121,8 @@ function AdminContent() {
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const regularUsers = users.filter((u) => !u.isAdmin);
-  const adminUsers = users.filter((u) => u.isAdmin);
+  // Calculate useful metrics
+  const totalProducts = allProducts.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
@@ -129,7 +143,7 @@ function AdminContent() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-6 text-white shadow-xl">
             <div className="flex items-center justify-between">
               <div>
@@ -140,23 +154,13 @@ function AdminContent() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white shadow-xl">
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium mb-1">Regular Users</p>
-                <p className="text-4xl font-black">{regularUsers.length}</p>
+                <p className="text-blue-100 text-sm font-medium mb-1">All Products</p>
+                <p className="text-4xl font-black">{totalProducts}</p>
               </div>
-              <UserCheck className="w-12 h-12 opacity-80" />
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-amber-100 text-sm font-medium mb-1">Admin Users</p>
-                <p className="text-4xl font-black">{adminUsers.length}</p>
-              </div>
-              <Crown className="w-12 h-12 opacity-80" />
+              <Package className="w-12 h-12 opacity-80" />
             </div>
           </div>
         </div>

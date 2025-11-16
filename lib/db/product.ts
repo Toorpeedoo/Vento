@@ -107,3 +107,8 @@ export async function productExists(username: string, id: number): Promise<boole
   return product !== null;
 }
 
+export async function getAllProductsAcrossUsers(): Promise<Product[]> {
+  const collection = await getCollection<Product>(COLLECTION);
+  return collection.find({}).sort({ id: 1 }).toArray();
+}
+
