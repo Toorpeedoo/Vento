@@ -117,8 +117,7 @@ function DeleteProductContent() {
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">All Products</h2>
-                <p className="text-sm text-gray-600 mt-1">Click on a product to delete it</p>
+                <h2 className="text-xl font-bold text-gray-<p className="text-sm text-gray-600 mt-1">Click on a product to delete it</p>
               </div>
               <div className="relative">
                 <input

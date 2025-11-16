@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getSession } from '@/lib/auth';
+import { logout } from '@/lib/auth-client';
 
 export default function Home() {
   const [user, setUser] = useState<{ username: string; isAdmin: boolean } | null>(null);
@@ -63,12 +63,14 @@ export default function Home() {
                     Continue to Dashboard
                   </Link>
                 )}
-                <Link
-                  href="/api/auth/logout"
+                <button
+                  onClick={async () => {
+                    await logout();
+                  }}
                   className="btn btn-secondary text-lg px-8 py-4 rounded-xl"
                 >
                   Logout
-                </Link>
+                </button>
               </>
             ) : (
               <>
