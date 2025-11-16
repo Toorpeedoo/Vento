@@ -3,6 +3,8 @@ import { verifyUser } from '@/lib/db/user';
 import { setSession } from '@/lib/auth';
 import { getUser } from '@/lib/db/user';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const { username, password } = await req.json();
