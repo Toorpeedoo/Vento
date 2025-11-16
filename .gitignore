@@ -1,27 +1,59 @@
-# Data files
-data/products.txt
-products.txt
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
 
-# OS files
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-Thumbs.db
-desktop.ini
+*.pem
 
-# Logs
-*.log
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Temporary files
-*.tmp
-*.temp
+# local env files
+.env*.local
+.env
 
-# PHP
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# PHP files (old)
+*.php
 vendor/
+composer.json
 composer.lock
 
+# Old CSS
+/css
+
+# Old data files
+/data
+
+# Installation scripts
+*.ps1
+*.sh
+*.bat
+
+# Documentation
+MONGODB_INSTALLATION.md
+MONGODB_DLL_INSTALL_GUIDE.md
+*.tgz
+*.zip

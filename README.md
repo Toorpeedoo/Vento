@@ -1,110 +1,130 @@
-# Vento
+# VENTO - Modern Inventory Management System
 
-A modern PHP web application for managing store inventory.
+A modern, full-stack inventory management system built with Next.js 14, TypeScript, MongoDB, and Tailwind CSS.
 
-## Features
+## ✨ Features
 
-- ✅ Add Products
-- ✅ View Products
-- ✅ Update Products
-- ✅ Delete Products
-- ✅ Add/Subtract Quantity
-- ✅ Modern, responsive design
-- ✅ File-based storage (no database required)
-- ✅ Real-time search functionality
+- 🔐 **Authentication System** - Secure login and signup with session management
+- 📦 **Product Management** - Add, view, update, and delete products
+- 📊 **Real-time Inventory** - Track quantities and prices
+- 👥 **User Management** - Admin dashboard for managing users
+- 🎨 **Modern UI** - Beautiful, responsive design with Tailwind CSS
+- ⚡ **Performance** - Built with Next.js 14 App Router for optimal performance
+- 🚀 **Vercel Ready** - Deploy to Vercel with zero configuration
 
-## Requirements
+## 🚀 Getting Started
 
-- PHP 7.0 or higher
-- Web server (Apache, Nginx, or PHP built-in server)
+### Prerequisites
 
-## Installation
+- Node.js 18+ 
+- MongoDB Atlas account (or local MongoDB)
+- npm or yarn
 
-1. Clone or download this repository
-2. Place all files in your web server directory
-3. Ensure the `data` directory is writable:
-   ```bash
-   chmod 777 data
-   ```
+### Installation
 
-## Running the Application
-
-### Using PHP Built-in Server (Development)
-
+1. **Install dependencies:**
 ```bash
-php -S localhost:8000
+npm install
 ```
 
-Then open your browser and navigate to:
-```
-http://localhost:8000
-```
-
-Or use the provided scripts:
-- **Windows**: Double-click `start.bat` or run `start.bat` from command line
-- **Linux/Mac**: Run `./start.sh` from terminal
-
-### Using Apache/Nginx
-
-1. Place all files in your web server root directory
-2. Access via: `http://localhost/`
-
-## File Structure
-
-```
-StoreInventorySystem/
-├── index.php              # Main splash page
-├── main_menu.php          # Main menu
-├── add_product.php        # Add product form
-├── view_products.php      # View all products
-├── update_product.php     # Update product form (unified with tabs)
-├── update_menu.php        # Update menu
-├── add_quantity.php       # Add quantity form
-├── subtract_quantity.php   # Subtract quantity form
-├── delete_product.php     # Delete product form
-├── classes/
-│   ├── Product.php        # Product class (OOP)
-│   └── FileDatabaseUtil.php # Database utility
-├── css/
-│   └── style.css          # Modern CSS styles
-├── data/
-│   └── products.txt       # Data storage (auto-created)
-├── start.bat              # Windows startup script
-├── start.sh               # Linux/Mac startup script
-└── .htaccess              # Apache configuration
+2. **Set up environment variables:**
+```bash
+cp .env.local.example .env.local
 ```
 
-## Data Storage
-
-Products are stored in `data/products.txt` in the format:
+Edit `.env.local` and add your MongoDB connection string:
 ```
-ID|ProductName|Price|Quantity
-```
-
-Example:
-```
-1|Laptop|999.99|10
-2|Mouse|29.99|50
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?appName=VENTO
+MONGODB_DB=vento_inventory
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 ```
 
-## Usage
+3. **Run the development server:**
+```bash
+npm run dev
+```
 
-1. **Add Product**: Enter product details (ID, Name, Price, Quantity)
-2. **View Products**: Browse all products with search functionality
-3. **Update Product**: Modify product information using the tabbed interface
-4. **Delete Product**: Remove products from inventory
-5. **Manage Quantity**: Add or subtract quantity from existing products
+4. **Open your browser:**
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-## Security Notes
+## 📁 Project Structure
 
-- This is a development application
-- For production, add:
-  - Input validation
-  - CSRF protection
-  - Authentication/Authorization
-  - SQL injection prevention (if using database)
-  - XSS protection
+```
+vento-inventory/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   │   ├── auth/         # Authentication endpoints
+│   │   ├── products/     # Product CRUD operations
+│   │   └── admin/        # Admin endpoints
+│   ├── login/            # Login page
+│   ├── signup/           # Signup page
+│   ├── dashboard/        # User dashboard
+│   └── admin/            # Admin dashboard
+├── components/            # React components
+├── lib/                   # Utility functions
+│   ├── db/              # Database utilities
+│   ├── auth.ts          # Authentication helpers
+│   └── mongodb.ts       # MongoDB connection
+└── public/               # Static assets
+```
 
-## License
+## 🎨 Design
 
-This project is open source and available for personal and commercial use.
+The application features a modern, clean design with:
+- Gradient backgrounds and buttons
+- Smooth animations and transitions
+- Responsive layout for all devices
+- Intuitive user interface
+- Professional color scheme
+
+## 🔧 Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript
+- **Database:** MongoDB
+- **Styling:** Tailwind CSS
+- **Authentication:** JWT with HTTP-only cookies
+- **Icons:** Lucide React
+
+## 📦 API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/session` - Get current session
+
+### Products
+- `GET /api/products` - Get all products
+- `POST /api/products` - Create product
+- `GET /api/products/[id]` - Get product by ID
+- `PUT /api/products/[id]` - Update product
+- `DELETE /api/products/[id]` - Delete product
+- `POST /api/products/[id]/quantity` - Update quantity
+
+### Admin
+- `GET /api/admin/users` - Get all users
+- `DELETE /api/admin/users` - Delete user
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+1. Push your code to GitHub
+2. Import your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy!
+
+The application is optimized for Vercel deployment.
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+## 📧 Support
+
+For support, please open an issue in the GitHub repository.
