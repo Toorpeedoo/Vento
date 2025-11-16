@@ -15,29 +15,30 @@ let client: MongoClient;
 let clientPromise: Promise<MongoClient> | null = null;
 
 function getClientPromise(): Promise<MongoClient> {
-  if (clientPromise) {
-    return clientPromise;
+  // Use global variable to cache connection in both dev and serverless (Vercel)
+  // This prevents creating new connections on each invocation
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (globalWithMongo._mongoClientPromise) {
+    return globalWithMongo._mongoClientPromise;
   }
 
   const uri = getMongoUri();
 
-  if (process.env.NODE_ENV === 'development') {
-    // In development mode, use a global variable so that the value
-    // is preserved across module reloads caused by HMR (Hot Module Replacement).
-    let globalWithMongo = global as typeof globalThis & {
-      _mongoClientPromise?: Promise<MongoClient>;
-    };
+  // Create MongoDB client with proper connection pool settings
+  client = new MongoClient(uri, {
+    maxPoolSize: 10,
+    minPoolSize: 1,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000,
+  });
 
-    if (!globalWithMongo._mongoClientPromise) {
-      client = new MongoClient(uri);
-      globalWithMongo._mongoClientPromise = client.connect();
-    }
-    clientPromise = globalWithMongo._mongoClientPromise;
-  } else {
-    // In production mode, it's best to not use a global variable.
-    client = new MongoClient(uri);
-    clientPromise = client.connect();
-  }
+  // Cache the connection promise globally
+  globalWithMongo._mongoClientPromise = client.connect();
+  clientPromise = globalWithMongo._mongoClientPromise;
 
   return clientPromise;
 }

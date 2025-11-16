@@ -31,10 +31,12 @@ export async function createUser(user: Omit<User, '_id'>): Promise<boolean> {
       return false;
     }
     
-    const result = await collection.insertOne({
+    const userDoc: User = {
       ...user,
       createdAt: new Date().toISOString(),
-    } as User);
+    } as User;
+    
+    const result = await collection.insertOne(userDoc);
     
     return result.insertedId !== null;
   } catch (error) {

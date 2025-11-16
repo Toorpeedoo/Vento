@@ -72,10 +72,23 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Signup error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const stack = error instanceof Error ? error.stack : undefined;
+    
+    // Log full error for debugging
+    console.error('Signup error details:', {
+      message: errorMessage,
+      stack,
+      env: {
+        hasMongoUri: !!process.env.MONGODB_URI,
+        hasDbName: !!process.env.MONGODB_DB,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+      }
+    });
+    
     return NextResponse.json(
       { 
         error: 'Internal server error',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        message: errorMessage,
       },
       { status: 500 }
     );
