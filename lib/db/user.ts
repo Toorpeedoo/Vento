@@ -4,11 +4,16 @@ import { User } from '../types';
 const COLLECTION = 'users';
 
 export async function getUser(username: string): Promise<User | null> {
-  const collection = await getCollection<User>(COLLECTION);
-  const user = await collection.findOne({
-    username: { $regex: new RegExp(`^${username}$`, 'i') }
-  });
-  return user;
+  try {
+    const collection = await getCollection<User>(COLLECTION);
+    const user = await collection.findOne({
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    });
+    return user;
+  } catch (error) {
+    console.error('getUser error:', error);
+    throw error;
+  }
 }
 
 export async function getAllUsers(): Promise<User[]> {
@@ -17,20 +22,25 @@ export async function getAllUsers(): Promise<User[]> {
 }
 
 export async function createUser(user: Omit<User, '_id'>): Promise<boolean> {
-  const collection = await getCollection<User>(COLLECTION);
-  
-  // Check if user exists
-  const existing = await getUser(user.username);
-  if (existing) {
-    return false;
+  try {
+    const collection = await getCollection<User>(COLLECTION);
+    
+    // Check if user exists
+    const existing = await getUser(user.username);
+    if (existing) {
+      return false;
+    }
+    
+    const result = await collection.insertOne({
+      ...user,
+      createdAt: new Date().toISOString(),
+    } as User);
+    
+    return result.insertedId !== null;
+  } catch (error) {
+    console.error('createUser error:', error);
+    throw error;
   }
-  
-  const result = await collection.insertOne({
-    ...user,
-    createdAt: new Date().toISOString(),
-  });
-  
-  return result.insertedId !== null;
 }
 
 export async function updateUser(oldUsername: string, user: Partial<User>): Promise<boolean> {
@@ -59,12 +69,17 @@ export async function deleteUser(username: string): Promise<boolean> {
 }
 
 export async function verifyUser(username: string, password: string): Promise<boolean> {
-  const user = await getUser(username);
-  if (!user) {
-    return false;
+  try {
+    const user = await getUser(username);
+    if (!user) {
+      return false;
+    }
+    
+    // Compare plain text passwords
+    return user.password === password;
+  } catch (error) {
+    console.error('verifyUser error:', error);
+    throw error;
   }
-  
-  // Compare plain text passwords
-  return user.password === password;
 }
 

@@ -1,4 +1,6 @@
-export interface User {
+import { Document } from 'mongodb';
+
+export interface User extends Document {
   _id?: string;
   username: string;
   password: string; // Plain text for admin viewing
@@ -6,7 +8,7 @@ export interface User {
   isAdmin: boolean;
 }
 
-export interface Product {
+export interface Product extends Document {
   _id?: string;
   id: number;
   productName: string;

@@ -29,14 +29,24 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export async function setSession(user: SessionUser): Promise<void> {
-  const token = createToken(user);
-  const cookieStore = await cookies();
-  cookieStore.set('auth-token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
+  try {
+    const token = createToken(user);
+    const cookieStore = await cookies();
+    
+    // Check if we're on Vercel (production) or local
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    
+    cookieStore.set('auth-token', token, {
+      httpOnly: true,
+      secure: isProduction, // Use secure cookies in production/Vercel
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    });
+  } catch (error) {
+    console.error('setSession error:', error);
+    throw error;
+  }
 }
 
 export async function clearSession(): Promise<void> {
