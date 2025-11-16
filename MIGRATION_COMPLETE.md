@@ -44,12 +44,14 @@ npm install
 ### 2. Set Up Environment Variables
 Create `.env.local` file:
 ```
-MONGODB_URI=mongodb+srv://Vento:Vento@vento.gknvzdv.mongodb.net/?appName=VENTO
-MONGODB_DB=vento_inventory
+MONGODB_URI=your-mongodb-connection-string
+MONGODB_DB=your-database-name
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 NEXTAUTH_SECRET=your-nextauth-secret-change-this-in-production
 NEXTAUTH_URL=http://localhost:3000
 ```
+
+**Important:** Never commit `.env.local` to version control!
 
 ### 3. Run Development Server
 ```bash

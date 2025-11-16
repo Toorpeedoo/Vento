@@ -8,12 +8,14 @@
 The `.env.local` file should be created automatically. If not, create it manually in the root folder with this content:
 
 ```env
-MONGODB_URI=mongodb+srv://Vento:Vento@vento.gknvzdv.mongodb.net/?appName=VENTO
-MONGODB_DB=vento_inventory
-JWT_SECRET=vento-secret-key-change-in-production-2024
-NEXTAUTH_SECRET=vento-nextauth-secret-change-in-production-2024
+MONGODB_URI=your-mongodb-connection-string
+MONGODB_DB=your-database-name
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+NEXTAUTH_SECRET=your-nextauth-secret-change-this-in-production
 NEXTAUTH_URL=http://localhost:3000
 ```
+
+**Important:** Never commit `.env.local` to version control! Add it to `.gitignore`.
 
 ## Step 3: Run the Development Server
 

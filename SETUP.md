@@ -10,14 +10,17 @@ npm install
 ### 2. Create Environment File
 Create `.env.local` in the root directory:
 ```env
-MONGODB_URI=mongodb+srv://Vento:Vento@vento.gknvzdv.mongodb.net/?appName=VENTO
-MONGODB_DB=vento_inventory
+MONGODB_URI=your-mongodb-connection-string
+MONGODB_DB=your-database-name
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 NEXTAUTH_SECRET=your-nextauth-secret-change-this-in-production
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-**Important:** Change `JWT_SECRET` and `NEXTAUTH_SECRET` to random strings for production!
+**Important:** 
+- Never commit `.env.local` to version control!
+- Use strong, random strings for `JWT_SECRET` and `NEXTAUTH_SECRET` in production
+- Keep your MongoDB credentials secure
 
 ### 3. Run Development Server
 ```bash
@@ -92,9 +95,10 @@ vento-inventory/
 ## 📝 Notes
 
 - All PHP files have been removed
-- MongoDB connection uses the same credentials
+- MongoDB connection requires your own credentials
 - Data structure remains compatible
 - All existing data will work with the new system
+- **Never commit `.env.local` to version control!**
 
 ## 🎉 You're All Set!
 

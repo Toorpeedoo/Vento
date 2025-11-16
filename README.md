@@ -32,11 +32,13 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Edit `.env.local` and add your MongoDB connection string:
+Edit `.env.local` and add your configuration:
 ```
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?appName=VENTO
-MONGODB_DB=vento_inventory
+MONGODB_URI=your-mongodb-connection-string
+MONGODB_DB=your-database-name
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+NEXTAUTH_SECRET=your-nextauth-secret-change-this-in-production
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 3. **Run the development server:**
