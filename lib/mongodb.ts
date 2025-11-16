@@ -1,44 +1,14 @@
 import { MongoClient, Db, Collection, Document } from 'mongodb';
 
+const MONGODB_URI = 'mongodb+srv://Vento:Vento@vento.gknvzdv.mongodb.net/?appName=VENTO';
+const MONGODB_DB = 'vento_inventory';
+
 function getMongoUri(): string {
-  if (!process.env.MONGODB_URI) {
-    console.error('❌ MONGODB_URI environment variable is not set!');
-    console.error('Add it to Vercel: Settings → Environment Variables');
-    console.error('Example: mongodb+srv://username:password@cluster.mongodb.net/?appName=VENTO');
-    throw new Error('MONGODB_URI is required. Please add it to your environment variables.');
-  }
-  
-  let uri = process.env.MONGODB_URI.trim();
-  
-  // Ensure mongodb+srv:// connections have proper parameters
-  if (uri.startsWith('mongodb+srv://')) {
-    try {
-      // For mongodb+srv://, TLS is automatic, but we should ensure proper connection options
-      // Add retryWrites and retryReads to the URI if not already present
-      const url = new URL(uri);
-      if (!url.searchParams.has('retryWrites')) {
-        url.searchParams.set('retryWrites', 'true');
-      }
-      if (!url.searchParams.has('w')) {
-        url.searchParams.set('w', 'majority');
-      }
-      // Ensure SSL/TLS is not explicitly disabled or set incorrectly
-      url.searchParams.delete('ssl'); // Remove if present, as it's not needed for mongodb+srv
-      url.searchParams.delete('tls'); // Remove if present, as it's automatic
-      uri = url.toString();
-    } catch (error) {
-      // If URL parsing fails, return the original URI
-      // This might happen if the URI format is non-standard
-      console.warn('Failed to parse MongoDB URI, using as-is:', error);
-      return uri;
-    }
-  }
-  
-  return uri;
+  return MONGODB_URI;
 }
 
 function getDbName(): string {
-  return process.env.MONGODB_DB || 'vento_inventory';
+  return MONGODB_DB;
 }
 
 let client: MongoClient;
