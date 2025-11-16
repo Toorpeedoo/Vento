@@ -4,9 +4,14 @@ import jwt from 'jsonwebtoken';
 import { SessionUser } from './types';
 
 function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret || secret === 'your-secret-key-change-in-production') {
-    throw new Error('JWT_SECRET environment variable is not set or is using the default value. Please set it in Vercel environment variables.');
+  const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    console.error('❌ JWT_SECRET or NEXTAUTH_SECRET environment variable is not set!');
+    console.error('Please add it to your Vercel environment variables.');
+    throw new Error('JWT_SECRET is required. Add it to Vercel environment variables: Settings → Environment Variables');
+  }
+  if (secret === 'your-secret-key-change-in-production' || secret === 'vento-secret-key-change-in-production-2024') {
+    console.warn('⚠️  WARNING: Using default JWT_SECRET. Please change it in production!');
   }
   return secret;
 }

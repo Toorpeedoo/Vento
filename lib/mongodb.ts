@@ -2,7 +2,10 @@ import { MongoClient, Db, Collection, Document } from 'mongodb';
 
 function getMongoUri(): string {
   if (!process.env.MONGODB_URI) {
-    throw new Error('Please add your Mongo URI to .env.local');
+    console.error('❌ MONGODB_URI environment variable is not set!');
+    console.error('Add it to Vercel: Settings → Environment Variables');
+    console.error('Example: mongodb+srv://username:password@cluster.mongodb.net/?appName=VENTO');
+    throw new Error('MONGODB_URI is required. Please add it to your environment variables.');
   }
   
   let uri = process.env.MONGODB_URI.trim();
